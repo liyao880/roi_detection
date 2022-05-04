@@ -23,13 +23,17 @@ The code base structure is explained below:
 - **train.py**: train patch classification model on annotated patches.
 - **score.py**: compute predicted scores for all patches from WSI with trained model.
 - **visual.py**: generate visualization maps.
-
+- files under color_norm folder are used to do color normalization
+- 
 You need to generate a csv file that contains 'slide_id', 'data_split', 'label' for training the model.
 
 ### 3. Training and Detection
 Here are example commands for training patch classification model and performing ROI detection.
 
 #### Train Patch Classification Model
+Step 0: Color Normalization
+
+```
 Step 1: extracting patches from whole slide images with annotation files (.xml). Depending on the annotations, the extracted patches may belong to different classes.
 ```
 python create_patches.py --source PATH_TO_WSI --save_dir PATH_TO_SAVE_ANNOTATED_PATCHES --xml_dir PATH_TO_XML --patch --xml
