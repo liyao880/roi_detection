@@ -24,7 +24,7 @@ The code base structure is explained below:
 - **score.py**: compute predicted scores for all patches from WSI with trained model.
 - **visual.py**: generate visualization maps.
 - files under color_norm folder are used to do color normalization
-- 
+
 You need to generate a csv file that contains 'slide_id', 'data_split', 'label' for training the model.
 
 ### 3. Training and Detection
