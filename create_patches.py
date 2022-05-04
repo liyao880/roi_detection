@@ -93,7 +93,7 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
                   seg = False, save_mask = True, 
                   stitch= False, 
                   patch = False, auto_skip=True, process_list = None,
-                  xml=False, xml_dir=None):
+                  xml=False, xml_dir=None, contour_list=None, xml_contour=None):
     
 
 
@@ -101,10 +101,9 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
     slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
     if process_list is None:
         df = initialize_df(slides, seg_params, filter_params, vis_params, patch_params)
-    
     else:
         df = pd.read_csv(process_list)
-
+    
     mask = df['process'] == 1
     process_stack = df[mask]
 
@@ -191,7 +190,10 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 
         seg_time_elapsed = -1
         if seg:
-            WSI_object, seg_time_elapsed = segment(WSI_object, current_seg_params, current_filter_params) 
+            if slide.split('.')[0] in contour_list:
+                WSI_object = xmlannoate(WSI_object, current_seg_params['seg_level'], xml_contour)
+            else:
+                WSI_object, seg_time_elapsed = segment(WSI_object, current_seg_params, current_filter_params) 
 
         if not seg and xml:
             WSI_object = xmlannoate(WSI_object, current_seg_params['seg_level'], xml_dir) 
@@ -236,12 +238,16 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
     return seg_times, patch_times
 
 parser = argparse.ArgumentParser(description='seg and patch')
-parser.add_argument('--source', type = str, default=None,
+parser.add_argument('--source', type = str, default=r'D:\yaoli\data\melanoma\wsi',
                     help='path to folder containing raw wsi image files.')
-parser.add_argument('--save_dir', type = str, default=None,
+parser.add_argument('--save_dir', type = str, default=r'D:\yaoli\data\melanoma\patches_all',
                     help='directory to save processed data')
-parser.add_argument('--xml_dir', type = str, default=None, 
+parser.add_argument('--xml_dir', type = str, default=r'D:\yaoli\data\melanoma\annotations\annotations_new', 
                     help='path to xml files')
+parser.add_argument('--xml_contour', type = str, default=r'D:\yaoli\data\melanoma\annotations\annotations_contour', 
+                    help='path to xml files')
+parser.add_argument('--contour_list', type = str, default=r'D:\yaoli\detect_roi\dataset_csv\contour_list.csv', 
+                    help='list of files the contour detection param does not work well')
 parser.add_argument('--xml', default=False, action='store_true')
 parser.add_argument('--patch', default=False, action='store_true')
 parser.add_argument('--seg', default=False, action='store_true')
@@ -269,7 +275,8 @@ if __name__ == '__main__':
     patch_save_dir = os.path.join(args.save_dir, 'patches')
     mask_save_dir = os.path.join(args.save_dir, 'masks')
     stitch_save_dir = os.path.join(args.save_dir, 'stitches')
-
+    contour_list = list(pd.read_csv(args.contour_list)['slide_id'])
+    
     if args.process_list:
         process_list = os.path.join(args.save_dir, args.process_list)
 
@@ -326,4 +333,5 @@ if __name__ == '__main__':
                                             stitch= args.stitch, custom_downsample = args.custom_downsample, 
                                             patch_level=args.patch_level, patch = args.patch,
                                             process_list = process_list, auto_skip=args.auto_skip,
-                                            xml=args.xml, xml_dir=args.xml_dir)
+                                            xml=args.xml, xml_dir=args.xml_dir, contour_list=contour_list, xml_contour=args.xml_contour)
+
